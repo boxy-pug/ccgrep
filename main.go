@@ -22,19 +22,8 @@ type Config struct {
 }
 
 func main() {
-
 	cfg := loadConfig()
-	fmt.Printf("cfg loaded, args: %v\n", cfg.args)
-
-	fmt.Println("Printing filepaths:")
-	for _, file := range cfg.filepaths {
-		fmt.Printf("%s\n", file)
-	}
-
-	fmt.Printf("Regex loaded: %v\n", cfg.regex)
-
 	processLines(cfg)
-
 }
 
 func loadConfig() Config {
@@ -52,27 +41,27 @@ func loadConfig() Config {
 		regex = "(?i)" + regex
 	}
 
-	fmt.Println(regex)
-
 	cfg.regex, err = regexp.Compile(regex)
 	if err != nil {
 		fmt.Println("error parsing regex: ", err)
 	}
 
 	if cfg.recurseDir {
-		if len(cfg.args) == 1 {
-			cfg.dirToSearch = "."
+		if len(cfg.args) > 1 {
+			if info, err := os.Stat(cfg.args[1]); err == nil && info.IsDir() {
+				cfg.dirToSearch = cfg.args[1]
+			} else {
+				cfg.dirToSearch = "."
+			}
 		} else {
-			cfg.dirToSearch = cfg.args[1]
+			cfg.dirToSearch = "."
 		}
-		fmt.Printf("cfgdir to search is: %v\n", cfg.dirToSearch)
+		// fmt.Printf("cfgdir to search is: %v\n", cfg.dirToSearch)
 		recurseDirFetchFilepaths(&cfg)
 	} else {
 		cfg.filepaths = append(cfg.filepaths, cfg.args[1])
 	}
-
 	return cfg
-
 }
 
 func recurseDirFetchFilepaths(cfg *Config) *Config {
@@ -81,10 +70,10 @@ func recurseDirFetchFilepaths(cfg *Config) *Config {
 			fmt.Printf("prevent panic by handling failure accessing a path %q: %v\n", path, err)
 			return err
 		}
-		fmt.Println("Checking path ", path)
+		// fmt.Println("Checking path ", path)
 
 		if !info.IsDir() {
-			fmt.Printf("Appending: %v\n", path)
+			// fmt.Printf("Appending: %v\n", path)
 			cfg.filepaths = append(cfg.filepaths, path)
 		}
 		return nil
@@ -112,7 +101,7 @@ func processLines(cfg Config) {
 				matchesFound++
 				if !cfg.invertSearch {
 					if len(cfg.filepaths) > 1 {
-						fmt.Printf("%s: ", filepath)
+						fmt.Printf("./%s:", filepath)
 					}
 					fmt.Println(line)
 				}
@@ -121,7 +110,7 @@ func processLines(cfg Config) {
 				if cfg.invertSearch {
 					matchesFound++
 					if len(cfg.filepaths) > 1 {
-						fmt.Printf("%s: ", filepath)
+						fmt.Printf("./%s:", filepath)
 					}
 					fmt.Println(line)
 				}
