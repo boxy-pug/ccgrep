@@ -41,19 +41,22 @@ func TestGrepCommand(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		cmd := exec.Command(tc.cmd, tc.args...)
-		got, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Fatalf("Command %v failed with error: %v, output: %s", cmd.Args, err, string(got))
-		}
-		unixCmd := exec.Command(tc.unixCmd, tc.args...)
-		want, err := unixCmd.CombinedOutput()
-		if err != nil {
-			t.Fatalf("Command %v failed with error: %v, output: %s", unixCmd.Args, err, string(want))
-		}
-		if string(got) != string(want) {
-			t.Errorf("Testcase %s failed, got %v but wanted %v", tc.name, string(got), string(want))
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			cmd := exec.Command(tc.cmd, tc.args...)
+			got, err := cmd.CombinedOutput()
+			if err != nil {
+				t.Fatalf("Command %v failed with error: %v, output: %s", cmd.Args, err, string(got))
+			}
+			unixCmd := exec.Command(tc.unixCmd, tc.args...)
+			want, err := unixCmd.CombinedOutput()
+			if err != nil {
+				t.Fatalf("Command %v failed with error: %v, output: %s", unixCmd.Args, err, string(want))
+			}
+			if string(got) != string(want) {
+				t.Errorf("Testcase %s failed, got %v but wanted %v", tc.name, string(got), string(want))
+			}
+		})
+
 	}
 
 }
